@@ -3,7 +3,7 @@ from .forms import RegisterForm
 from django.contrib import messages
 from django.contrib.auth.models import User , Group
 from django.contrib.auth import authenticate , login , logout
-from .models import Post
+from .models import Post , ContactForm
 
 def home_page(request):
     objects = Post.objects.all()
@@ -13,16 +13,49 @@ def about_us(request):
     return render(request,"blog/aboutus.html")
 
 def contact_us(request):
+    if request.method == "POST":
+        fullname = request.POST["fname"]
+        email_address = request.POST["email"]
+        number = request.POST["number"]
+        address = request.POST["address"]
+        msg = request.POST["message"]
+        
+        if fullname =="" or email_address=="" or number =="" or address=="" or msg=="":
+            messages.error(request,"All Input Must Filled !!")
+            return redirect("contact_us")
+        
+        if len(number)!=10:
+            messages.error(request,"Enter 10 Digits Number !!")
+            return redirect("contact_us")
+        
+        else:
+            ContactForm.objects.create(
+                fullname = fullname,
+                email = email_address,
+                phone = number,
+                address = address,
+                message = msg
+            )
+            messages.success(request,"Form Submitted Successfully !!")
+            return redirect("contact_us")
+            
+        
     return render(request,"blog/contact.html")
 
 def dashboard(request):
+    
     if request.user.is_authenticated:
-        posts = Post.objects.all()
         user = request.user
         full_name = user.get_full_name()
         gps = user.groups.all()
-        return render(request,"blog/dashboard.html",{"posts":posts,"full_name":full_name,"groups":gps})
-       
+        
+        if user.is_staff or user.is_superuser:
+            posts = Post.objects.all() 
+            return render(request,"blog/dashboard.html",{"posts":posts,"full_name":full_name,"groups":gps})
+        else: 
+            posts = Post.objects.filter(author = request.user)
+            return render(request,"blog/dashboard.html",{"posts":posts,"full_name":full_name,"groups":gps})
+            
     else:
         return redirect("login")
 

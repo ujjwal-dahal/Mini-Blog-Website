@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block head %}
-{% block title %}Home{% endblock %}
+{% block title %}ThoughtStream{% endblock %}
 
 <style>
 .author-title{
@@ -21,7 +21,7 @@
     {% for message in messages %}
       <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close float-end" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     {% endfor %}
   </div>

@@ -11,6 +11,8 @@
     {% for message in messages  %}
     <div class="alert alert-success">
         {{message}}
+        <button type="button" class="btn-close float-end" data-bs-dismiss="alert" aria-label="Close"></button>
+
     </div>
     {% endfor %}
     {% endif %}
@@ -29,6 +31,7 @@
         </div>
 
         <button type="submit" class="btn btn-success">Edit</button>
+        <a href="{% url "dashboard" %}"><span type="submit" class="btn btn-danger">Cancel</span></a>
     </form>
 </div>
 

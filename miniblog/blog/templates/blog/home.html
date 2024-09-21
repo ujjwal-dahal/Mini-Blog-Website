@@ -1,10 +1,20 @@
 {% extends "blog/layout.html" %}
 {% load static %}
+
+{% block head %}
 {% block title %}Home{% endblock %}
 
-{% block content %}
+<style>
+.author-title{
+    font-weight: bold;
+    text-align: center;
+}
+</style>
 
-<div class="col-sm-10 mx-auto mt-5" >
+{% endblock %}
+
+{% block content %}
+<div class="col-sm-10 mx-auto mt-5">
   <h1 class="text-white">Latest Blogs</h1>
   {% if messages %}
   <div class="mt-3">
@@ -15,21 +25,22 @@
       </div>
     {% endfor %}
   </div>
-{% endif %}
+  {% endif %}
 
-
-  {% for d in data  %}
+  {% for d in data %}
     <div class="card shadow-lg card-height">
       <div class="card-header bg-primary text-white">
-        <h3 class="card-title card-text">{{d.title}}</h3>
+        <h3 class="card-title card-text">{{ d.title }}</h3>
       </div>
       <div class="card-body">
-        <p class="card-text"> {{d.description}}  </p>
+        <p class="card-text">{{ d.description }}</p>
       </div>
+      {% if request.user.is_authenticated %}
+      <p class="author-title">Author: {{ d.author.username }} | Created At: {{ d.created_at }}</p>
+      {% else %}
+      <p class="author-title">Author: Anonymous | Created At: Anonymous</p>
+      {% endif %}
     </div>
-    {% endfor %}
-  </div>
-  
-  
-
+  {% endfor %}
+</div>
 {% endblock %}

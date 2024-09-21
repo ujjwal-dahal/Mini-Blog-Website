@@ -118,6 +118,7 @@
 
       <div class="container mt-5 table-container">
         <h3 class="text-center mb-4 title">Show Post Information</h3>
+        {% if posts %}
         <table class="table table-bordered">
           <thead>
             <tr>
@@ -127,6 +128,7 @@
               <th class="btn-column" style="width:15%">Action</th>
             </tr>
           </thead>
+          
           <tbody>
             {% for post in posts %}
             <tr>
@@ -147,6 +149,9 @@
             {% endfor %}
           </tbody>
         </table>
+        {% else %}
+        <center><h1>No Any Post !!</h1></center>
+        {% endif %}
       </div>
     </div>
   </div>

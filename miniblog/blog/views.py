@@ -5,6 +5,19 @@ from django.contrib.auth.models import User , Group
 from django.contrib.auth import authenticate , login , logout
 from .models import Post , ContactForm
 
+from django.core.mail import send_mail
+from miniblog.settings import EMAIL_HOST_USER
+
+from django.utils.http import urlsafe_base64_decode , urlsafe_base64_encode
+from django.utils.encoding import force_bytes , force_str
+from django.template.loader import render_to_string
+from django.contrib.sites.shortcuts import get_current_site
+from .tokens import token_generator
+from django.http import HttpResponse
+
+import io
+from rest_framework.renderers import JSONRenderer
+
 def home_page(request):
     objects = Post.objects.all()
     return render(request,"blog/home.html",{"data":objects})
@@ -97,11 +110,61 @@ def register(request):
                 email=email,
                 password=pass1
             )
+            data = request.POST 
             group = Group.objects.get(name="Author")
             user.groups.add(group)
-            messages.success(request,"Congratulation You are now an Author !!")
-            return redirect("login")
+            
+            subject = "Thank You For Registration"
+            message = f"Thank You {data['username']} for Registration. We will send our updates to your mail {data['email']}"
+            email = data['email']
+            recipient_list = [email]            
+            send_mail(subject , message , EMAIL_HOST_USER , recipient_list , fail_silently = True)
+            
+            
+            user.is_active = False
+            user.save()
+            
+            #Prepare Email Confirmation
+            current_site = get_current_site(request)
+            email_subject = "Activate Your Account"
+            email_message = render_to_string("account_activation.html",{
+                "user":user,
+
+                "domain":current_site.domain,
+                
+                
+                "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                
+                #Token Generate garna
+                "token": token_generator.make_token(user),
+                
+            })
+            
+            
+            send_mail(email_subject,email_message, EMAIL_HOST_USER , recipient_list)
+            messages.success(request,"Check Your Email For Account Activation !!")
+            return redirect("register")
     return render(request,"blog/register.html",{"form":form})
+
+def activate_account(request,uidb64,token):
+    try:
+        '''uid64 is string wala user id ho tara hamilai Integer wala chaeyo
+        so urlsafe_base65_decode() le tyo uidb64 lai decode garera bytes ma convert garcha
+        ani force_str() le tyo bytes lai integer ma convert garcha'''
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        
+        user = User.objects.get(pk = uid)
+        
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request,"Your Account is Successfully Activated")
+        return  redirect("login")
+    else:
+        return HttpResponse("<h1>Failed To Activate</h1>")
 
 
 def login_page(request):
